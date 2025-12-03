@@ -6,16 +6,25 @@
 #define STARTING_DIAL 50
 
 int turnDial(int currentDial, std::string instruction) {
-    // int nextDial = currentDial + instruction with 100 logic
-    // return nextDial;
-    return 0; 
+    int dialToMove = std::stoi(instruction.substr(1));
+    // std::cout << "Current Dial: " << currentDial << ", Instruction: " << instruction << ", Dial to Move: " << dialToMove << std::endl;
+    if (instruction[0] == 'L') {
+         dialToMove *= -1;
+    }
+    int nextDial = currentDial + dialToMove;
+    while (nextDial < 0) {
+        nextDial += TOTAL_DIALS;
+    }
+    while (nextDial >= TOTAL_DIALS) {
+        nextDial -= TOTAL_DIALS;
+    }
+    return nextDial;
 }
 
 int main(int argc, char** argv) {
-    std::cout << "Day 1 Part 1" << std::endl;
     int currentDial = STARTING_DIAL;
     int numberOfZeros = 0;
-    std::ifstream infile("input1.txt");
+    std::ifstream infile("inputs/day1.txt");
     std::string line;
     while (std::getline(infile, line))
     {
