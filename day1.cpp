@@ -73,6 +73,6 @@ int partB() {
 }
 
 int main(int argc, char** argv) {
-    partA();
-    // partB();
+    // partA();
+    partB();
 }
