@@ -8,17 +8,17 @@ fi
 
 set -e
 
-rm -f "day$DAY"
-g++ -std=c++17 -O2 -g "day$DAY.cpp" -o "day$DAY"
+rm -f "./executables/day$DAY"
+g++ -std=c++17 -O2 -g "day$DAY.cpp" -o "./executables/day$DAY"
 
 mkdir -p outputs
 INPUT="inputs/day$DAY.txt"
 OUTPUT="outputs/day$DAY.txt"
 
 if [ -f "$INPUT" ]; then
-  ./"day$DAY" < "$INPUT" > "$OUTPUT"
+  "./executables/day$DAY" < "$INPUT" > "$OUTPUT"
 else
-  ./"day$DAY" > "$OUTPUT"
+  "./executables/day$DAY" > "$OUTPUT"
 fi
 
 cat "$OUTPUT"
