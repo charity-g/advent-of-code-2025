@@ -40,9 +40,23 @@ bool hasLessThanFourNeighbors(const vector<vector<bool>>& map, int r, int c) {
     return roll_count < 4;
 }
 
-void partA(const vector<vector<bool>>& map) {
+int rollsLeft(const vector<vector<bool>>& map) {
     int rolls = 0;
+    int rows = map.size();
+    int cols = map[0].size();
+    
+    for (int c = 0; c < cols; c++) {
+        for (int r = 0; r < rows; r++) {
+            if (map[r][c]) {
+                rolls++;
+            }
+        }
+    }
+    return rolls;
+}
 
+int removeRollsOnMap(vector<vector<bool>>& map) {
+    int rolls = 0;
     int rows = map.size();
     int cols = map[0].size();
 
@@ -50,14 +64,54 @@ void partA(const vector<vector<bool>>& map) {
         for (int r = 0; r < rows; r++) {
             if (map[r][c] && hasLessThanFourNeighbors(map, r, c)) {
                 rolls++;
+                map[r][c] = false;
             }
         }
     }
+    return rolls;
+}
 
+void printMap(const vector<vector<bool>>& map) {
+    int rows = map.size();
+    int cols = map[0].size();
 
+    for (int r = 0; r < rows; r++) {
+        for (int c = 0; c < cols; c++) {
+            if (map[r][c]) {
+                cout << "@";
+            } else {
+                cout << ".";
+            }
+        }
+        cout << endl;
+    }
+    cout << endl;
+}
+
+void partA(vector<vector<bool>>& map) {
+    int rolls = removeRollsOnMap(map);
     cout << "Part A found " << rolls << " rolls" << endl;
 }
 
+void partB(vector<vector<bool>>& map) {
+    int rolls_removed = 0;
+    int rows = map.size();
+    int cols = map[0].size();
+
+    int rolls_prev_left = 0;
+    int rolls_left = rollsLeft(map);
+    while (rolls_prev_left != rolls_left) {
+        int a = removeRollsOnMap(map);
+        rolls_removed += a;
+        // cout << "After removing " << a << " rolls, " << rolls_left - a << " remain:" << endl;
+        // printMap(map);
+        rolls_prev_left = rolls_left;
+        rolls_left = rollsLeft(map);
+    }
+
+
+    cout << "Part B found " << rolls_removed << " rolls that were removed." << endl;
+}
 
 int main(int argc, char** argv) {
     ifstream infile("inputs/day4.txt");
@@ -75,6 +129,6 @@ int main(int argc, char** argv) {
         }
         map.push_back(row);
     }
-    partA(map);
+    partB(map);
     return 0;
 }
