@@ -6,6 +6,7 @@
 #include <string>
 #include <algorithm>
 using namespace std;
+const int PARTB_COLUMNS = 3;
 
 void print(const vector<char>& column_types, const vector<vector<long>>& columns) {
     for (const auto& col : column_types) {
@@ -74,28 +75,50 @@ string to_string_func(long v) {
 }
 
 pair<vector<char>, vector<vector<long>>> partBParsing(ifstream& infile) {
-    auto [column_types, columns] = partAParsing(infile);
-    vector<vector<long>> partb_columns;
-    print(column_types, columns);
+    string line;
+    int line_len;
+    vector<char> column_types;
+    vector<string> unrotated_columns;
+    vector<vector<long>> columns;
+    int i = 0, start_i = 0;
 
-    for (const auto& col : columns) {
-        vector<string> partb_col_string(col.size(), ""); 
-
-        for (auto number : col) {
-            string digits = to_string(number);
-            for (int i = 0; i < digits.size(); i++) {
-                
-                partb_col_string[digits.size() - 1 - i] += digits[i];
-            }
+    while (getline(infile, line)) {
+        if (!line.empty() && (line[0] == '*' || line[0] == '+')) {
+            break;
         }
-
-        vector<long> partb_col;
-        transform(partb_col_string.begin(), partb_col_string.end(), back_inserter(partb_col), [](const string& s) { return stol(s); });
-        partb_columns.push_back(partb_col);
+        unrotated_columns.push_back(line);
+    }
+    i = 0;
+    while (i < line.size()) {
+        if (line[i] != ' ') {
+            column_types.push_back(line[i]);
+        }
+        i++;
     }
 
-    print(column_types, partb_columns);
-    return make_pair(column_types, partb_columns);
+    
+    line_len = unrotated_columns[0].size();
+    vector<long> column;
+    string col_str;
+    for (int i = 0; i < line_len; i++) {
+        col_str = "";
+        for (auto col : unrotated_columns) {
+            if (col[i] != ' ') {
+                col_str += col[i];
+            }
+        }
+        if (col_str.size() > 0) {
+            column.push_back(stol(col_str));
+        } else {
+            columns.push_back(column);
+            column.clear();
+        }
+    }
+    columns.push_back(column);
+    
+
+    print(column_types, columns);
+    return make_pair(column_types, columns);
 }
 
 long calculation(const vector<char>& column_types, const vector<vector<long>>& columns) {
