@@ -74,56 +74,27 @@ string to_string_func(long v) {
 }
 
 pair<vector<char>, vector<vector<long>>> partBParsing(ifstream& infile) {
-    vector<char> column_types;
-    vector<vector<string>> columns;
-    string line;
-    
-    getline(infile, line);
-    int i = 0;
-    while (i < line.size()) {
-            int start_i = i;
-            while (i < line.size() && line[i] != ' ') {
-                i++;
-            }
-            vector<string> column;
-            column.push_back(line.substr(start_i, i - start_i));
-            columns.push_back(column);
-            i++;
-    }
-
-    while (getline(infile, line)) {
-        if (!line.empty() && (line[0] == '+' || line[0] == '*')) {
-            break;
-        }
-        int col_i = 0;
-        i = 0;
-        while (i < line.size()) {
-            int col_len = columns[col_i][0].length();
-            cout << "col_i=" << col_i << " i=" << i << '-' << line.substr(i, col_len) << endl;
-            columns[col_i].push_back(line.substr(i, col_len));
-            i += col_len + 1;
-            col_i++;
-        }
-    }
-
-    i = 0;   
-    while (i < line.size()) {
-        if (line[i] != ' ') {
-            column_types.push_back(line[i]);
-        }
-        i++;
-    }
-
-    cout << "starting" << endl;
-    for (auto & col : columns) {
-        for (auto & val : col) {
-            cout << val << " ";
-        }
-        cout << endl;
-    }
-
+    auto [column_types, columns] = partAParsing(infile);
     vector<vector<long>> partb_columns;
+    print(column_types, columns);
 
+    for (const auto& col : columns) {
+        vector<string> partb_col_string(col.size(), ""); 
+
+        for (auto number : col) {
+            string digits = to_string(number);
+            for (int i = 0; i < digits.size(); i++) {
+                
+                partb_col_string[digits.size() - 1 - i] += digits[i];
+            }
+        }
+
+        vector<long> partb_col;
+        transform(partb_col_string.begin(), partb_col_string.end(), back_inserter(partb_col), [](const string& s) { return stol(s); });
+        partb_columns.push_back(partb_col);
+    }
+
+    print(column_types, partb_columns);
     return make_pair(column_types, partb_columns);
 }
 
