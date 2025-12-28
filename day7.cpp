@@ -37,6 +37,13 @@ void partA(ifstream& infile, int start) {
     cout << "Part A shows that laser splits: " << splits << " times." << endl;
 }
 
+void printRow(const vector<long>& row) {
+    for (long val : row) {
+        cout << val << " ";
+    }
+    cout << endl;
+}
+
 void partB(ifstream& infile, int start) {
     vector<string> matrix;
     string line;
@@ -46,30 +53,32 @@ void partB(ifstream& infile, int start) {
     }
     
     int n = matrix.size(), m = matrix[0].size();
-    vector<vector<int>> dp(n, vector<int>(m, 0));
-
-    for (int i = 0; i < m; ++i) {
-        dp[n - 1][i] = 1;
-    }
-
+    vector<long> dp(m, 1);
+    
+    // printRow(dp);
     for (int i = n - 2; i >= 0; --i) {
         for (int j = 0; j < m; ++j) {
             if (matrix[i][j] == '^') {
-                int total = 0;
+                long total = 0;
                 if (j > 0) {
-                    total += dp[i + 1][j - 1];
+                    total += dp[j - 1];
                 } 
                 if (j < m - 1) {
-                    total += dp[i + 1][j + 1];
+                    total += dp[j + 1];
                 }
-                dp[i][j] = total;
-            } else {
-                dp[i][j] = dp[i + 1][j];
+                dp[j] = total;
+                if (total < 0) {
+                    cerr << "Overflow detected!" << endl;
+                    cout << j << " "  << dp[j - 1] << " " << dp[j + 1] << endl;
+                    break;
+                }
             }
         }
+        // printRow(dp);
     }
 
-    int timelines = dp[0][start];
+    long timelines = dp[start];
+    printRow(dp);
 
     cout << "Part B shows that there are: " << timelines << " timelines." << endl;
 }
