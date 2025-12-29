@@ -8,6 +8,16 @@
 #include <cstring>
 using namespace std;
 
+list<int> splitByComma(const string& str) {
+    list<int> result;
+    std::istringstream iss(str);
+    std::string token;
+    while (std::getline(iss, token, ',')) {
+        result.push_back(stoi(token));
+    }
+    return result;
+}
+
 void printMachineButtons(const vector<vector<list<int>>>& machine_buttons) {
     for (const auto& buttons : machine_buttons) {
         cout << "Machine Buttons:" << endl;
@@ -61,9 +71,10 @@ int fewestButtonPressesToStart(const string& indicator, const vector<list<int>>&
     
     if (min_presses == buttons.size() + 1) {
         cout << "Could not reach indicator state: " << indicator << endl;
-    } else {
-        cout << "Reached indicator state: " << indicator << " in " << min_presses << " presses" << endl;
     }
+    // else {
+    //     cout << "Reached indicator state: " << indicator << " in " << min_presses << " presses" << endl;
+    // }
     return min_presses;
 }
 
@@ -73,18 +84,14 @@ void partA(const vector<string>& machine_indicators, const vector<vector<list<in
         const string& indicator = machine_indicators[i];
         const vector<list<int>>& buttons = machine_buttons[i];
         int presses_for_machine = fewestButtonPressesToStart(indicator, buttons);
-        cout << "Machine " << i << " started with " << presses_for_machine << " presses" << endl;
         presses += presses_for_machine;
     }
     
     cout << "Part A started all machines with "  << presses << " button presses" << endl;
 }
 
-
-int main(int argc, char** argv) {
-    ifstream infile("inputs/day10.txt");
-    string line;
-    
+pair<vector<string>, vector<vector<list<int>>>> parseInputA(ifstream& infile) {
+    string line;    
     vector<string> machine_indicators;
     vector<vector<list<int>>> machine_buttons;
 
@@ -110,9 +117,51 @@ int main(int argc, char** argv) {
         }
         machine_buttons.push_back(buttons);
     }
+    return {machine_indicators, machine_buttons};
+}
 
+pair<vector<list<int>>, vector<vector<list<int>>>> parseInputB(ifstream& infile) {
+    string line;    
+    vector<list<int>> joltage_requirements;
+    vector<vector<list<int>>> machine_buttons;
+
+    while (getline(infile, line)) {
+        smatch joltage;
+        regex_search(line, joltage, regex("\\{([\\.#]+)\\}"));
+        joltage_requirements.push_back(splitByComma(joltage.str(1)));
+
+        vector<list<int>> buttons;
+        regex buttonPattern("\\(([\\d,]*\\d+)\\)");
+        const vector<smatch> matches{
+            sregex_iterator{cbegin(line), cend(line), buttonPattern},
+            sregex_iterator{}
+        };
+        for (const auto& match : matches) {
+            list<int> button_presses = splitByComma(match.str(1));
+            buttons.push_back(button_presses);
+        }
+        machine_buttons.push_back(buttons);
+    }
+    
+    return {joltage_requirements, machine_buttons};    
+}
+
+void partB(const vector<list<int>>& joltage_requirements, const vector<vector<list<int>>>& machine_buttons) {
+    //TODO    
+    int presses = 0;
+    cout << "Part A got to final joltage with "  << presses << " button presses" << endl;
+}
+
+
+int main(int argc, char** argv) {
+    ifstream infile("inputs/day10.txt");
+    
     auto beg = chrono::high_resolution_clock::now();
-    partA(machine_indicators, machine_buttons);
+    // auto [machine_indicators, machine_buttons] = parseInputA(infile);
+    // partA(machine_indicators, machine_buttons);
+    auto [joltage_requirements, machine_buttons] = parseInputB(infile);
+    partB(joltage_requirements, machine_buttons);
+
     auto end = chrono::high_resolution_clock::now();
     auto duration = chrono::duration_cast<chrono::microseconds>(end - beg);
     cout << "Time taken to run function: " << duration.count() << " microseconds" << endl;
