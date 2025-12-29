@@ -4,6 +4,7 @@
 #include <set>
 #include <map>
 #include <algorithm>
+#include <chrono>
 using namespace std;
 
 void printGrid(const vector<vector<bool>>& grid) {
@@ -194,6 +195,23 @@ vector<vector<int>> generateSat(const vector<vector<bool>>& grid) {
     return sat;
 }
 
+bool containsOnlyInsideTiles(const vector<vector<int>>& sat, const pair<int,int>& a, const pair<int,int>& b) {
+    int topL_x = min(a.first, b.first);
+    int topL_y = min(a.second, b.second);
+    int botR_x = max(a.first, b.first);
+    int botR_y = max(a.second, b.second);
+    int upperSectionCount = (topL_x > 0) ? sat[topL_x - 1][botR_y] : 0;
+    int leftSectionCount = (topL_y > 0) ? sat[botR_x][topL_y - 1] : 0;
+    int overlapSectionCount = (topL_x > 0 && topL_y > 0) ? sat[topL_x - 1][topL_y - 1] : 0;
+    int total_outside_tiles = sat[botR_x][botR_y] - upperSectionCount - leftSectionCount + overlapSectionCount;
+    return total_outside_tiles == 0;
+}
+
+// decompress a compressed tile back to original coordinates
+pair<int, int> decompressTile(const pair<int,int>& compressed_tile, const pair<vector<int>, vector<int>>& xy_maps) {
+    return {xy_maps.first[compressed_tile.first], xy_maps.second[compressed_tile.second]};
+}
+
 // idea/startegy taken from https://www.reddit.com/user/Gabba333/ [Accessed Dec 28 2025]
 // post: https://www.reddit.com/r/adventofcode/comments/1phywvn/2025_day_9_solutions/
 void partB(const vector<pair<int,int>>& red_tiles) {
@@ -203,20 +221,22 @@ void partB(const vector<pair<int,int>>& red_tiles) {
     vector<vector<bool>> grid = markPolygononGrid(compressed_tiles, xy_maps.first.size(), xy_maps.second.size());
     //generate 2d-prefix sum aka Summed Area Table (SAT)
     vector<vector<int>> sat = generateSat(grid);
-    
-    // generate all rectangles
-    //TODO
 
-    
-    // sort rectangles by area descending
-    
-    
     // for each rectangle, check if it is fully covered by red tiles using SAT
-    
-    
-    // uncompress top rectangle found
-        
     long max_area = 0;
+    for (int i = 0; i < compressed_tiles.size(); ++i) {
+        for (int j = i+1; j < compressed_tiles.size(); ++j) {
+            bool isValid = containsOnlyInsideTiles(sat, compressed_tiles[i], compressed_tiles[j]);
+            if (isValid) {
+                pair<int,int> decompressed_a = decompressTile(compressed_tiles[i], xy_maps);
+                pair<int,int> decompressed_b = decompressTile(compressed_tiles[j], xy_maps);
+                long area = calculateArea(decompressed_a, decompressed_b);
+                if (area > max_area) {
+                    max_area = area;
+                }
+            }
+        }
+    }
     cout << "Part B's result, largest rect area is: " << max_area << endl;
 }
 
@@ -236,7 +256,11 @@ int main(int argc, char** argv) {
     }
 
     // partA(red_tiles);
+    auto beg = chrono::high_resolution_clock::now();
     partB(red_tiles);
+    auto end = chrono::high_resolution_clock::now();
+    auto duration = chrono::duration_cast<chrono::microseconds>(end - beg);
+    cout << "Time taken to run function: " << duration.count() << " microseconds" << endl;
 
     return 0;
 }
