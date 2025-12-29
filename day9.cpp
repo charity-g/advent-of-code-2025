@@ -1,7 +1,18 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <map>
+#include <algorithm>
 using namespace std;
+
+void printGrid(const vector<vector<bool>>& grid) {
+    for (int i = 0; i < grid.size(); ++i) {
+        for (int j = 0; j < grid[0].size(); ++j) {
+            cout << (grid[i][j] ? '#' : '.');
+        }
+        cout << endl;
+    }
+}
 
 long calculateArea(const pair<int,int>& a, const pair<int,int>& b) {
     long length = abs(a.first - b.first) + 1;
@@ -26,13 +37,126 @@ void partA(const vector<pair<int,int>>& red_tiles) {
     cout << "Part A's result, largest rect area is: " << max_area << endl;
 }
 
+pair<vector<pair<int,int>>, pair<vector<int>, vector<int>>> compressTiles(const vector<pair<int,int>>& red_tiles) {
+    vector<int> x_map;
+    vector<int> y_map;
+    map<int, int> x_reverse_map;
+    map<int, int> y_reverse_map;
 
-// taken from https://www.reddit.com/user/Gabba333/ [Accessed Dec 28 2025]
-// * poster: https://www.reddit.com/r/adventofcode/comments/1phywvn/2025_day_9_solutions/
+    for (const auto& tile : red_tiles) {
+        x_map.push_back(tile.first);
+        y_map.push_back(tile.second);
+    }
+
+    sort(x_map.begin(), x_map.end());
+    sort(y_map.begin(), y_map.end());
+    for (int i = 0; i < x_map.size(); ++i) {
+        x_reverse_map[x_map[i]] = i;
+    }
+    for (int i = 0; i < y_map.size(); ++i) {
+        y_reverse_map[y_map[i]] = i;
+    }
+
+    vector<pair<int,int>> compressed_tiles;
+    for (const auto& tile : red_tiles) {
+        compressed_tiles.push_back({x_reverse_map[tile.first], y_reverse_map[tile.second]});
+    }
+
+    return {compressed_tiles, {x_map, y_map}};
+}
+
+void floodfill(vector<vector<bool>>& grid) {
+    int rows = grid.size();
+    int cols = grid[0].size();
+    grid.push_back(vector<bool>(cols, true));
+
+    vector<pair<int,int>> stack;
+    stack.push_back({rows, 0});
+    while (!stack.empty()) {
+        pair<int,int> curr = stack.back();
+        stack.pop_back();
+
+        if (curr.first < 0 || curr.first > rows || curr.second < 0 || curr.second >= cols) {
+            continue;
+        }
+        if (!grid[curr.first][curr.second]) {
+            continue;
+        }
+
+        grid[curr.first][curr.second] = false;
+
+        stack.push_back({curr.first + 1, curr.second});
+        stack.push_back({curr.first - 1, curr.second});
+        stack.push_back({curr.first, curr.second + 1});
+        stack.push_back({curr.first, curr.second - 1});
+    }
+    grid.pop_back(); //remove sentinal row
+}
+
+// returns grid where grid[i][j] is true if (i,j) is inside polygon
+vector<vector<bool>> markPolygononGrid(const vector<pair<int,int>>& compressed_tiles, int rows, int cols) {
+    vector<vector<bool>> grid(rows, vector<bool>(cols, true));
+    pair<int,int> prev = compressed_tiles[compressed_tiles.size() - 1];
+
+    // mark polygon perimeter on grid
+    for (int i = 0; i < compressed_tiles.size(); ++i) {
+        pair<int,int> curr = compressed_tiles[i];
+        
+        if (prev.first == curr.first) { //x is the same, fill y
+            for (int y = min(prev.second, curr.second); y <= max(prev.second, curr.second); ++y) {
+                grid[prev.first][y] = false;
+            }
+        } else { //y is the same, fill x
+            for (int y = min(prev.first, curr.first); y <= max(prev.first, curr.first); ++y) {
+                grid[y][prev.second] = false;
+            }
+        }
+        prev = curr;
+    }
+
+    // flood fill the polygon
+    floodfill(grid);
+    // mark polygon perimeter on grid
+    for (int i = 0; i < compressed_tiles.size(); ++i) {
+        pair<int,int> curr = compressed_tiles[i];
+        
+        if (prev.first == curr.first) { //x is the same, fill y
+            for (int y = min(prev.second, curr.second); y <= max(prev.second, curr.second); ++y) {
+                grid[prev.first][y] = true;
+            }
+        } else { //y is the same, fill x
+            for (int y = min(prev.first, curr.first); y <= max(prev.first, curr.first); ++y) {
+                grid[y][prev.second] = true;
+            }
+        }
+        prev = curr;
+    }
+
+
+    return grid;
+}
+
+vector<vector<int>> generateSat(const vector<vector<bool>>& grid) {
+    int rows = grid.size();
+    int cols = grid[0].size();
+    vector<vector<int>> sat(rows + 1, vector<int>(cols + 1, 0));
+
+
+
+    return sat;
+}
+
+// idea/startegy taken from https://www.reddit.com/user/Gabba333/ [Accessed Dec 28 2025]
+// post: https://www.reddit.com/r/adventofcode/comments/1phywvn/2025_day_9_solutions/
 void partB(const vector<pair<int,int>>& red_tiles) {
     //compress tiles
+    auto [compressed_tiles, xy_maps] = compressTiles(red_tiles);
     //mark polygon on compressed grid
+    vector<vector<bool>> grid = markPolygononGrid(compressed_tiles, xy_maps.first.size(), xy_maps.second.size());
     //generate 2d-prefix sum aka Summed Area Table (SAT)
+    vector<vector<int>> sat = generateSat(grid);
+    printGrid(grid);
+
     // generate all rectangles
     // sort rectangles by area descending
     // for each rectangle, check if it is fully covered by red tiles using SAT
