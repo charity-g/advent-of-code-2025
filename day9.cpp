@@ -26,6 +26,22 @@ void partA(const vector<pair<int,int>>& red_tiles) {
     cout << "Part A's result, largest rect area is: " << max_area << endl;
 }
 
+
+// taken from https://www.reddit.com/user/Gabba333/ [Accessed Dec 28 2025]
+// * poster: https://www.reddit.com/r/adventofcode/comments/1phywvn/2025_day_9_solutions/
+void partB(const vector<pair<int,int>>& red_tiles) {
+    //compress tiles
+    //mark polygon on compressed grid
+    //generate 2d-prefix sum aka Summed Area Table (SAT)
+    // generate all rectangles
+    // sort rectangles by area descending
+    // for each rectangle, check if it is fully covered by red tiles using SAT
+    // uncompress top rectangle found
+        
+    long max_area = 0;
+    cout << "Part B's result, largest rect area is: " << max_area << endl;
+}
+
 int main(int argc, char** argv) {
     ifstream infile("inputs/day9.txt");
     string line;
@@ -41,7 +57,8 @@ int main(int argc, char** argv) {
         }
     }
 
-    partA(red_tiles);
+    // partA(red_tiles);
+    partB(red_tiles);
 
     return 0;
 }
