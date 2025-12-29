@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <set>
 #include <map>
 #include <algorithm>
 using namespace std;
@@ -38,15 +39,18 @@ void partA(const vector<pair<int,int>>& red_tiles) {
 }
 
 pair<vector<pair<int,int>>, pair<vector<int>, vector<int>>> compressTiles(const vector<pair<int,int>>& red_tiles) {
-    vector<int> x_map;
-    vector<int> y_map;
+    set<int> x_set;
+    set<int> y_set;
     map<int, int> x_reverse_map;
     map<int, int> y_reverse_map;
 
     for (const auto& tile : red_tiles) {
-        x_map.push_back(tile.first);
-        y_map.push_back(tile.second);
+        x_set.insert(tile.first);
+        y_set.insert(tile.second);
     }
+
+    vector<int> x_map(x_set.begin(), x_set.end());
+    vector<int> y_map(y_set.begin(), y_set.end());
 
     sort(x_map.begin(), x_map.end());
     sort(y_map.begin(), y_map.end());
@@ -68,15 +72,24 @@ pair<vector<pair<int,int>>, pair<vector<int>, vector<int>>> compressTiles(const 
 void floodfill(vector<vector<bool>>& grid) {
     int rows = grid.size();
     int cols = grid[0].size();
-    grid.push_back(vector<bool>(cols, true));
+    
+    for (int i = 0; i < rows; ++i) {
+        grid[i].insert(grid[i].begin(), true); //sentinal col at left
+        grid[i].push_back(true); //sentinal col at right
+    }
+    
+    grid.insert(grid.begin(), vector<bool>(cols + 2, true)); //sentinal row at top
+    grid.push_back(vector<bool>(cols + 2, true)); //sentinal row at bottom
+    printGrid(grid);
+    cout << "before flood fill after snetinel" << endl;
 
     vector<pair<int,int>> stack;
-    stack.push_back({rows, 0});
+    stack.push_back({0, 0});
     while (!stack.empty()) {
         pair<int,int> curr = stack.back();
         stack.pop_back();
 
-        if (curr.first < 0 || curr.first > rows || curr.second < 0 || curr.second >= cols) {
+        if (curr.first < 0 || curr.first > rows + 1 || curr.second < 0 || curr.second > cols + 1) {
             continue;
         }
         if (!grid[curr.first][curr.second]) {
@@ -84,13 +97,18 @@ void floodfill(vector<vector<bool>>& grid) {
         }
 
         grid[curr.first][curr.second] = false;
-
         stack.push_back({curr.first + 1, curr.second});
         stack.push_back({curr.first - 1, curr.second});
         stack.push_back({curr.first, curr.second + 1});
         stack.push_back({curr.first, curr.second - 1});
     }
-    grid.pop_back(); //remove sentinal row
+
+    grid.erase(grid.begin()); //remove sentinal row at top
+    grid.pop_back(); //remove sentinal row at bottom
+    for (int i = 0; i < rows; ++i) {
+        grid[i].erase(grid[i].begin()); //remove sentinal col at left
+        grid[i].pop_back(); //remove sentinal col at right  
+    }
 }
 
 // returns grid where grid[i][j] is true if (i,j) is inside polygon
@@ -101,7 +119,6 @@ vector<vector<bool>> markPolygononGrid(const vector<pair<int,int>>& compressed_t
     // mark polygon perimeter on grid
     for (int i = 0; i < compressed_tiles.size(); ++i) {
         pair<int,int> curr = compressed_tiles[i];
-        
         if (prev.first == curr.first) { //x is the same, fill y
             for (int y = min(prev.second, curr.second); y <= max(prev.second, curr.second); ++y) {
                 grid[prev.first][y] = false;
@@ -113,9 +130,9 @@ vector<vector<bool>> markPolygononGrid(const vector<pair<int,int>>& compressed_t
         }
         prev = curr;
     }
-
     // flood fill the polygon
     floodfill(grid);
+    
     // mark polygon perimeter on grid
     for (int i = 0; i < compressed_tiles.size(); ++i) {
         pair<int,int> curr = compressed_tiles[i];
@@ -131,6 +148,9 @@ vector<vector<bool>> markPolygononGrid(const vector<pair<int,int>>& compressed_t
         }
         prev = curr;
     }
+    cout << endl;
+    
+    printGrid(grid);
 
 
     return grid;
@@ -141,8 +161,7 @@ vector<vector<int>> generateSat(const vector<vector<bool>>& grid) {
     int cols = grid[0].size();
     vector<vector<int>> sat(rows + 1, vector<int>(cols + 1, 0));
 
-
-
+    //TODO
     return sat;
 }
 
@@ -155,11 +174,17 @@ void partB(const vector<pair<int,int>>& red_tiles) {
     vector<vector<bool>> grid = markPolygononGrid(compressed_tiles, xy_maps.first.size(), xy_maps.second.size());
     //generate 2d-prefix sum aka Summed Area Table (SAT)
     vector<vector<int>> sat = generateSat(grid);
-    printGrid(grid);
-
+    
     // generate all rectangles
+    //TODO
+
+    
     // sort rectangles by area descending
+    
+    
     // for each rectangle, check if it is fully covered by red tiles using SAT
+    
+    
     // uncompress top rectangle found
         
     long max_area = 0;
