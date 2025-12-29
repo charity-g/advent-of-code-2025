@@ -7,9 +7,32 @@
 using namespace std;
 
 void printGrid(const vector<vector<bool>>& grid) {
+    cout << endl;
     for (int i = 0; i < grid.size(); ++i) {
         for (int j = 0; j < grid[0].size(); ++j) {
             cout << (grid[i][j] ? '#' : '.');
+        }
+        cout << endl;
+    }
+}
+
+// Function to left pad a string (e.g., with leading zeros)
+void padLeft(std::string& str, size_t totalLength, char paddingChar = '0') {
+    if (totalLength > str.length()) {
+        // The std::min prevents potential unsigned integer wrap around issues
+        size_t paddingLength = totalLength - std::min(totalLength, str.length()); 
+        str.insert(0, paddingLength, paddingChar);
+    }
+}
+
+void printSat(const vector<vector<int>>& grid) {
+    cout << endl;
+    int maxDigits = to_string(grid.size() * grid[0].size()).size();
+    for (int i = 0; i < grid.size(); ++i) {
+        for (int j = 0; j < grid[0].size(); ++j) {
+            string val = to_string(grid[i][j]);
+            padLeft(val, maxDigits, ' ');
+            cout << val << ' ';
         }
         cout << endl;
     }
@@ -80,8 +103,6 @@ void floodfill(vector<vector<bool>>& grid) {
     
     grid.insert(grid.begin(), vector<bool>(cols + 2, true)); //sentinal row at top
     grid.push_back(vector<bool>(cols + 2, true)); //sentinal row at bottom
-    printGrid(grid);
-    cout << "before flood fill after snetinel" << endl;
 
     vector<pair<int,int>> stack;
     stack.push_back({0, 0});
@@ -132,7 +153,7 @@ vector<vector<bool>> markPolygononGrid(const vector<pair<int,int>>& compressed_t
     }
     // flood fill the polygon
     floodfill(grid);
-    
+
     // mark polygon perimeter on grid
     for (int i = 0; i < compressed_tiles.size(); ++i) {
         pair<int,int> curr = compressed_tiles[i];
@@ -148,20 +169,28 @@ vector<vector<bool>> markPolygononGrid(const vector<pair<int,int>>& compressed_t
         }
         prev = curr;
     }
-    cout << endl;
-    
-    printGrid(grid);
-
-
     return grid;
 }
 
 vector<vector<int>> generateSat(const vector<vector<bool>>& grid) {
     int rows = grid.size();
     int cols = grid[0].size();
-    vector<vector<int>> sat(rows + 1, vector<int>(cols + 1, 0));
+    vector<vector<int>> sat(rows, vector<int>(cols, 0));
 
-    //TODO
+    // initalize first row and column to 0
+    sat[0][0] = !grid[0][0];
+    for (int i = 1; i < rows; ++i) {
+        sat[i][0] = (!grid[i][0]) + sat[i - 1][0];
+    }
+    for (int j = 1; j < cols; ++j) {
+        sat[0][j] = (!grid[0][j]) + sat[0][j - 1];
+    }
+
+    for (int i = 1; i < rows; ++i) {
+        for (int j = 1; j < cols; ++j) {
+            sat[i][j] = (!grid[i][j]) + sat[i - 1][j] + sat[i][j - 1] - sat[i - 1][j - 1];
+        }
+    }
     return sat;
 }
 
