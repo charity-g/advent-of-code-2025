@@ -153,6 +153,7 @@ pair<vector<list<int>>, vector<vector<list<int>>>> parseInputB(ifstream& infile)
         smatch joltage;
         regex_search(line, joltage, regex("\\{([\\d\\,]+)\\}"));
         joltage_requirements.push_back(splitByComma(joltage.str(1)));
+
         vector<list<int>> buttons;
         regex buttonPattern("\\(([\\d,]*\\d+)\\)");
         const vector<smatch> matches{
@@ -183,11 +184,11 @@ int isAllZeroes(const list<int>& joltage) {
 
 int fewestButtonPressesToConfigureJoltage(const list<int>& joltage, const vector<list<int>>& buttons) {
     // For now, just return number of buttons as placeholder
-    list<pair<, int>> states = {{joltage, 0}};
+    list<pair<list<int>, int>> states = {{joltage, 0}};
     while(!states.empty()) {
-        list<int> state = states.front().first;
-        int presses = states.front().second;
-        states.pop_front();
+        list<int> state = states.back().first;
+        int presses = states.back().second;
+        states.pop_back();
         cout << "Current joltage state: ";
         for (const int j : state) {
             cout << j << " ";
