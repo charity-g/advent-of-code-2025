@@ -210,8 +210,6 @@ int fewestButtonPressesToConfigureJoltage(const list<int>& joltage, const vector
             for (const auto& button : buttons) {
                 list<int> new_state = pressButtonForJoltage(state, button);
                 states.push_back({new_state, presses + 1});
-                cout << " adding new state to stack after pressing button: ";
-                printState(new_state);
             }
         }
     }

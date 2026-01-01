@@ -54,3 +54,4 @@ To generate your own executable without the run function, use the following comm
 ## Day 10 
 - iterators for lists and const_iterators
 - templates, overload resolution, and instantiation.
+- Algorithmn - Part B - DP
