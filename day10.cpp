@@ -32,11 +32,35 @@ void printMachineButtons(const vector<vector<list<int>>>& machine_buttons) {
 }
 
 // returns new state after pressing button, which toggles the indexes in the list
-string pressButton(const string& state, const list<int>& indexes) {
+string pressButtonForIndicator(const string& state, const list<int>& indexes) {
     string new_state = state;
     for (const int i: indexes) {
         new_state[i] = (state[i] == '.') ? '#' : '.';
     }
+    return new_state;
+}
+
+list<int> pressButtonForJoltage(const list<int> state, const list<int>& indexes) {
+    list<int> new_state = {};
+    int i = 0;
+    list<int>::const_iterator it_state = state.begin();
+    for (const int j : indexes) {
+        while (i < j && it_state != state.end()) {
+            new_state.push_back(*it_state);
+            ++it_state;
+            ++i;
+        }
+        if (it_state != state.end()) {
+            new_state.push_back(*it_state - 1);
+            ++it_state;
+            ++i;
+        }
+    }
+    while (it_state != state.end()) {
+        new_state.push_back(*it_state);
+        ++it_state;
+    }
+    
     return new_state;
 }
 
@@ -55,7 +79,7 @@ list<pair<string, int>> generateNextStates(const string indicator, const list<in
         if (state == indicator) *min_presses = min(*min_presses, presses);
         // else, add two options for new state to take or not take curr button press 
         new_states.push_back({state, presses}); // not take
-        new_states.push_back({pressButton(state, indexes), presses + 1}); // take
+        new_states.push_back({pressButtonForIndicator(state, indexes), presses + 1}); // take
     }
     return new_states;
 }
@@ -127,9 +151,8 @@ pair<vector<list<int>>, vector<vector<list<int>>>> parseInputB(ifstream& infile)
 
     while (getline(infile, line)) {
         smatch joltage;
-        regex_search(line, joltage, regex("\\{([\\.#]+)\\}"));
+        regex_search(line, joltage, regex("\\{([\\d\\,]+)\\}"));
         joltage_requirements.push_back(splitByComma(joltage.str(1)));
-
         vector<list<int>> buttons;
         regex buttonPattern("\\(([\\d,]*\\d+)\\)");
         const vector<smatch> matches{
@@ -146,10 +169,58 @@ pair<vector<list<int>>, vector<vector<list<int>>>> parseInputB(ifstream& infile)
     return {joltage_requirements, machine_buttons};    
 }
 
+// returns 1 if all elements in joltage are zero
+// returns 0 if all elements in joltage are >= 0
+// returns -1 if any element in joltage is < 0
+int isAllZeroes(const list<int>& joltage) {
+    bool isAllZeroes = false;
+    for (const int j : joltage) {
+        if (j < 0) return -1;
+        if (j > 0) return 0;
+    }
+    return isAllZeroes;
+}
+
+int fewestButtonPressesToConfigureJoltage(const list<int>& joltage, const vector<list<int>>& buttons) {
+    // For now, just return number of buttons as placeholder
+    list<pair<, int>> states = {{joltage, 0}};
+    while(!states.empty()) {
+        list<int> state = states.front().first;
+        int presses = states.front().second;
+        states.pop_front();
+        cout << "Current joltage state: ";
+        for (const int j : state) {
+            cout << j << " ";
+        }
+        cout << " after " << presses << " presses" << endl;
+
+        // Check if state is all zeros
+        int isAllZeroesStatus = isAllZeroes(state);
+        if (isAllZeroesStatus == 1) {
+            return presses;
+        } else if (isAllZeroesStatus == -1) {
+            continue; // invalid state, skip
+        } // else add children states
+        for (const auto& button : buttons) {
+            int new_presses = presses + 1;
+            for (const auto button: buttons) {
+                list<int> new_state = pressButtonForJoltage(state, button);
+                states.push_back({new_state, presses + 1});
+            }
+        }
+    }
+
+    return buttons.size();
+}
+
 void partB(const vector<list<int>>& joltage_requirements, const vector<vector<list<int>>>& machine_buttons) {
-    //TODO    
     int presses = 0;
-    cout << "Part A got to final joltage with "  << presses << " button presses" << endl;
+    for (int i = 0; i < joltage_requirements.size(); ++i) {
+        const list<int>& joltage = joltage_requirements[i];
+        const vector<list<int>>& buttons = machine_buttons[i];
+        presses += fewestButtonPressesToConfigureJoltage(joltage, buttons);
+    }
+    cout << "Part B got to final joltage with "  << presses << " button presses" << endl;
 }
 
 
@@ -157,6 +228,7 @@ int main(int argc, char** argv) {
     ifstream infile("inputs/day10.txt");
     
     auto beg = chrono::high_resolution_clock::now();
+    
     // auto [machine_indicators, machine_buttons] = parseInputA(infile);
     // partA(machine_indicators, machine_buttons);
     auto [joltage_requirements, machine_buttons] = parseInputB(infile);
