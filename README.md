@@ -32,3 +32,25 @@ To generate your own executable without the run function, use the following comm
 > .\day1
 
 
+
+# My C++ Learning Progress:
+
+## Day 1 
+- compilation
+- importing <iostream> and <fstream>
+- Algorithm - Part A: math
+
+## Day 2
+- vectors
+- string.find and string.substr functions
+- Algorithm - Part A: Modulo math
+
+## Day 3
+- `priority_queue`
+- attempted heap implementation
+- Characters and strings in cpp
+- Algorithm - Part A: Heap
+
+## Day 10 
+- iterators for lists and const_iterators
+- templates, overload resolution, and instantiation.

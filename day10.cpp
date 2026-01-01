@@ -18,6 +18,14 @@ list<int> splitByComma(const string& str) {
     return result;
 }
 
+void printState(const list<int>& state) {
+    cout << "Joltage state: ";
+    for (const int j : state) {
+        cout << j << " ";
+    }
+    cout << endl;
+}
+
 void printMachineButtons(const vector<vector<list<int>>>& machine_buttons) {
     for (const auto& buttons : machine_buttons) {
         cout << "Machine Buttons:" << endl;
@@ -177,7 +185,6 @@ int isAllZeroes(const list<int>& joltage) {
     bool isAllZeroes = false;
     for (const int j : joltage) {
         if (j < 0) return -1;
-        if (j > 0) return 0;
     }
     return isAllZeroes;
 }
@@ -186,14 +193,11 @@ int fewestButtonPressesToConfigureJoltage(const list<int>& joltage, const vector
     // For now, just return number of buttons as placeholder
     list<pair<list<int>, int>> states = {{joltage, 0}};
     while(!states.empty()) {
-        list<int> state = states.back().first;
-        int presses = states.back().second;
-        states.pop_back();
-        cout << "Current joltage state: ";
-        for (const int j : state) {
-            cout << j << " ";
-        }
-        cout << " after " << presses << " presses" << endl;
+        list<int> state = states.front().first;
+        int presses = states.front().second;
+        states.pop_front();
+        cout << presses << ": ";
+        printState(state);
 
         // Check if state is all zeros
         int isAllZeroesStatus = isAllZeroes(state);
@@ -201,12 +205,13 @@ int fewestButtonPressesToConfigureJoltage(const list<int>& joltage, const vector
             return presses;
         } else if (isAllZeroesStatus == -1) {
             continue; // invalid state, skip
-        } // else add children states
-        for (const auto& button : buttons) {
+        } else {// else add children states
             int new_presses = presses + 1;
-            for (const auto button: buttons) {
+            for (const auto& button : buttons) {
                 list<int> new_state = pressButtonForJoltage(state, button);
                 states.push_back({new_state, presses + 1});
+                cout << " adding new state to stack after pressing button: ";
+                printState(new_state);
             }
         }
     }
