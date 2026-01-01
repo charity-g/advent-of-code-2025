@@ -34,6 +34,21 @@ void printGraph(unordered_map<string, vector<string>>& graph) {
     }
 }
 
+void printPath(const set<string>& path) {
+    cout << "Path: ";
+    for (const auto& device : path) {
+        cout << device << " ";
+    }
+    cout << endl;
+}
+
+void printValidPathExistsDp(const unordered_map<string, int>& validPathExists) {
+    cout << "Valid Path Exists DP Table:" << endl;
+    for (const auto& [device, count] : validPathExists) {
+        cout << "  " << device << ": " << count << endl;
+    }
+}
+
 void partA(unordered_map<string, vector<string>>& graph) {
     int paths = 0;
     list<pair<string, set<string>>> states = {{START_DEVICE_A, {}}};
@@ -61,16 +76,19 @@ void partA(unordered_map<string, vector<string>>& graph) {
 
 int pathsToEndDeviceThroughDacFft(unordered_map<string, vector<string>>& graph, unordered_map<string, int>& validPathExists, const string& device, const set<string>& path) {
     if (device == END_DEVICE) {
-        if (path.find("dac") != path.end() && path.find("fft") != path.end()) {
+        // printPath(path);
+        // printValidPathExistsDp(validPathExists);
+        if (path.find("dac") != path.end() &&
+            path.find("fft") != path.end()) {
             return 1;
         } else {
             return 0;
         };
     }
 
-    if (validPathExists.find(device) != validPathExists.end()) {
-        return validPathExists[device];
-    }
+    // if (validPathExists.find(device) != validPathExists.end()) {
+    //     return validPathExists[device];
+    // }
 
     int total_paths = 0;
     set<string> new_path = path;
@@ -80,7 +98,10 @@ int pathsToEndDeviceThroughDacFft(unordered_map<string, vector<string>>& graph, 
             total_paths += pathsToEndDeviceThroughDacFft(graph, validPathExists, output_device, new_path);
         }
     }
-    validPathExists[device] = total_paths;
+    // if (total_paths > 0) {
+    //     validPathExists[device] = total_paths;
+    // }
+    cout << "Device " << device << " has " << total_paths << " valid paths to " << END_DEVICE << endl;
     return total_paths;
 }
 
